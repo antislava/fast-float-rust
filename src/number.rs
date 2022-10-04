@@ -147,7 +147,7 @@ fn parse_scientific(s: &mut AsciiStr<'_>) -> i64 {
 }
 
 #[inline]
-pub fn parse_number(s: &[u8]) -> Option<(Number, usize)> {
+pub fn parse_number<const DECPOINT: u8>(s: &[u8]) -> Option<(Number, usize)> {
     debug_assert!(!s.is_empty());
 
     let mut s = AsciiStr::new(s);
@@ -175,7 +175,7 @@ pub fn parse_number(s: &[u8]) -> Option<(Number, usize)> {
     let mut n_after_dot = 0;
     let mut exponent = 0_i64;
     let int_end = s;
-    if s.check_first(b'.') {
+    if s.check_first(DECPOINT) {
         s.step();
         let before = s;
         try_parse_8digits(&mut s, &mut mantissa);
@@ -214,7 +214,7 @@ pub fn parse_number(s: &[u8]) -> Option<(Number, usize)> {
     n_digits -= 19;
     let mut many_digits = false;
     let mut p = digits_start;
-    while p.check_first_either(b'0', b'.') {
+    while p.check_first_either(b'0', DECPOINT) {
         n_digits -= p.first().saturating_sub(b'0' - 1) as isize; // '0' = b'.' + 2
         p.step();
     }

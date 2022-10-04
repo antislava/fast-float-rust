@@ -48,7 +48,7 @@ use core::fmt::{self, Display};
 
 mod binary;
 mod common;
-mod decimal;
+pub mod decimal;
 mod float;
 mod number;
 mod parse;
@@ -84,9 +84,9 @@ pub trait FastFloat: float::Float {
     /// Will return an error either if the string is not a valid decimal number.
     /// or if any characters are left remaining unparsed.
     #[inline]
-    fn parse_float<S: AsRef<[u8]>>(s: S) -> Result<Self> {
+    fn parse_float<S: AsRef<[u8]>, const DECPOINT: u8>(s: S) -> Result<Self> {
         let s = s.as_ref();
-        match Self::parse_float_partial(s) {
+        match Self::parse_float_partial::<&[u8], DECPOINT>(s) {
             Ok((v, n)) if n == s.len() => Ok(v),
             _ => Err(Error),
         }
@@ -102,8 +102,8 @@ pub trait FastFloat: float::Float {
     /// Will return an error either if the string doesn't start with a valid decimal number
     /// – that is, if no zero digits were processed.
     #[inline]
-    fn parse_float_partial<S: AsRef<[u8]>>(s: S) -> Result<(Self, usize)> {
-        parse::parse_float(s.as_ref()).ok_or(Error)
+    fn parse_float_partial<S: AsRef<[u8]>, const DECPOINT: u8>(s: S) -> Result<(Self, usize)> {
+        parse::parse_float::<Self, DECPOINT>(s.as_ref()).ok_or(Error)
     }
 }
 
@@ -117,8 +117,8 @@ impl FastFloat for f64 {}
 /// Will return an error either if the string is not a valid decimal number
 /// or if any characters are left remaining unparsed.
 #[inline]
-pub fn parse<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<T> {
-    T::parse_float(s)
+pub fn parse<T: FastFloat, S: AsRef<[u8]>, const DECPOINT: u8>(s: S) -> Result<T> {
+    T::parse_float::<S, DECPOINT>(s)
 }
 
 /// Parse a decimal number from string into float (partial).
@@ -131,6 +131,6 @@ pub fn parse<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<T> {
 /// Will return an error either if the string doesn't start with a valid decimal number
 /// – that is, if no zero digits were processed.
 #[inline]
-pub fn parse_partial<T: FastFloat, S: AsRef<[u8]>>(s: S) -> Result<(T, usize)> {
-    T::parse_float_partial(s)
+pub fn parse_partial<T: FastFloat, S: AsRef<[u8]>, const DECPOINT: u8>(s: S) -> Result<(T, usize)> {
+    T::parse_float_partial::<S, DECPOINT>(s)
 }

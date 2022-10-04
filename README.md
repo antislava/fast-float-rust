@@ -36,18 +36,30 @@ either a string or a bytes slice and parsing the input into either `f32` or `f64
 
 Example:
 
+**NOTE: Additional generic `const u8` parameter for decimal point separator**
+
 ```rust
 // Parse the entire string as a decimal number.
 let s = "1.23e-02";
-let x: f32 = fast_float::parse(s).unwrap();
+let x: f32 = fast_float::parse::<_, _, b'.'>(s).unwrap();
 assert_eq!(x, 0.0123);
+
+let s = "-12,5";
+let x: f32 = fast_float::parse::<_, _, b','>(s).unwrap();
+assert_eq!(x, -12.5);
 
 // Parse as many characters as possible as a decimal number.
 let s = "1.23e-02foo";
-let (x, n) = fast_float::parse_partial::<f32, _>(s).unwrap();
+let (x, n) = fast_float::parse_partial::<f32, _, b'.'>(s).unwrap();
 assert_eq!(x, 0.0123);
 assert_eq!(n, 8);
 assert_eq!(&s[n..], "foo");
+
+let s = "-12,5 %";
+let (x, n) = fast_float::parse_partial::<f32, _, b','>(s).unwrap();
+assert_eq!(x, -12.5);
+assert_eq!(n, 5);
+assert_eq!(&s[n..].trim(), "%");
 ```
 
 ## Details
